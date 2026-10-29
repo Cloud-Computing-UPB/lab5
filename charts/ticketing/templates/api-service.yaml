@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ticketing.apiName" . }}
+  labels:
+    {{- include "ticketing.commonLabels" . | nindent 4 }}
+    {{- include "ticketing.apiSelectorLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.api.service.type }}
+  selector:
+    {{- include "ticketing.apiSelectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.api.service.port }}
+      targetPort: http
+      protocol: TCP
+

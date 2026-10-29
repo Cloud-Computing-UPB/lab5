@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ticketing.configName" . }}
+  labels:
+    {{- include "ticketing.commonLabels" . | nindent 4 }}
+data:
+  APP_VERSION: {{ .Values.config.appVersion | quote }}
+  ARTIFICIAL_DELAY_MS: {{ .Values.config.artificialDelayMs | quote }}
+  FAILURE_RATE: {{ .Values.config.failureRate | quote }}
+  CPU_BURN_MS: {{ .Values.config.cpuBurnMs | quote }}
+  PORT: "8080"
+  USE_POSTGRES: "true"
+  DB_HOST: {{ include "ticketing.postgresqlName" . | quote }}
+  DB_PORT: {{ .Values.postgresql.service.port | quote }}
+  DB_NAME: {{ .Values.postgresql.auth.database | quote }}
+  DB_USER: {{ .Values.postgresql.auth.username | quote }}
+

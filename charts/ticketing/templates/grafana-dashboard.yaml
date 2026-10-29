@@ -1,0 +1,12 @@
+{{- if .Values.monitoring.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ticketing.fullname" . }}-grafana-dashboard
+  labels:
+    {{- include "ticketing.commonLabels" . | nindent 4 }}
+    {{ .Values.monitoring.grafanaDashboard.label }}: {{ .Values.monitoring.grafanaDashboard.labelValue | quote }}
+data:
+  ticketing-overview.json: |-
+{{ .Files.Get "dashboards/ticketing-overview.json" | indent 4 }}
+{{- end }}

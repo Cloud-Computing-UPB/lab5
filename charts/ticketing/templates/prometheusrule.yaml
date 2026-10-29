@@ -1,0 +1,42 @@
+{{- if .Values.monitoring.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "ticketing.fullname" . }}-slo
+  labels:
+    {{- include "ticketing.commonLabels" . | nindent 4 }}
+    {{- with .Values.monitoring.prometheusRule.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: ticketing-api.slo
+      rules:
+        - alert: TicketingHighErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{namespace="{{ .Release.Namespace }}",status=~"5.."}[5m]))
+              /
+              clamp_min(sum(rate(http_requests_total{namespace="{{ .Release.Namespace }}"}[5m])), 0.001)
+            ) > {{ .Values.monitoring.prometheusRule.errorRateThreshold }}
+          for: {{ .Values.monitoring.prometheusRule.for }}
+          labels:
+            severity: warning
+            service: ticketing-api
+          annotations:
+            summary: "Ticketing API depășește bugetul de erori"
+            description: "Rata răspunsurilor 5xx a depășit pragul configurat pentru cel puțin {{ .Values.monitoring.prometheusRule.for }}."
+        - alert: TicketingHighP95Latency
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (rate(http_request_duration_seconds_bucket{namespace="{{ .Release.Namespace }}"}[5m]))
+            ) > {{ .Values.monitoring.prometheusRule.p95LatencySeconds }}
+          for: {{ .Values.monitoring.prometheusRule.for }}
+          labels:
+            severity: warning
+            service: ticketing-api
+          annotations:
+            summary: "Ticketing API are latență p95 ridicată"
+            description: "Latența p95 a depășit {{ .Values.monitoring.prometheusRule.p95LatencySeconds }} secunde pentru cel puțin {{ .Values.monitoring.prometheusRule.for }}."
+{{- end }}

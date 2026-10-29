@@ -1,0 +1,28 @@
+Ticketing API a fost instalat în namespace-ul {{ .Release.Namespace }}.
+
+1. Urmăriți starea componentelor:
+   kubectl get deployments,statefulsets,pods,services,pvc -n {{ .Release.Namespace }}
+
+2. Așteptați ca API-ul să fie disponibil:
+   kubectl rollout status deployment/{{ include "ticketing.apiName" . }} -n {{ .Release.Namespace }}
+
+3. Expuneți local serviciul:
+   kubectl port-forward service/{{ include "ticketing.apiName" . }} -n {{ .Release.Namespace }} 8080:{{ .Values.api.service.port }}
+
+4. Verificați aplicația:
+   curl http://localhost:8080/readyz
+   curl http://localhost:8080/info
+   curl http://localhost:8080/metrics
+
+5. Rulați testul chart-ului:
+   helm test {{ .Release.Name }} -n {{ .Release.Namespace }} --logs
+{{- if .Values.autoscaling.enabled }}
+
+6. Urmăriți autoscaling-ul:
+   kubectl get hpa,pods -n {{ .Release.Namespace }} --watch
+{{- end }}
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+
+ServiceMonitor-ul, regulile Prometheus și dashboard-ul Grafana sunt active.
+{{- end }}
+

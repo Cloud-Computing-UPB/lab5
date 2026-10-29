@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["config", "api", "autoscaling", "monitoring", "postgresql"],
+  "properties": {
+    "fullnameOverride": {"type": "string"},
+    "config": {
+      "type": "object",
+      "required": ["appVersion", "artificialDelayMs", "failureRate", "cpuBurnMs"],
+      "properties": {
+        "appVersion": {"type": "string", "minLength": 1},
+        "artificialDelayMs": {"type": "integer", "minimum": 0, "maximum": 10000},
+        "failureRate": {"type": "number", "minimum": 0, "maximum": 1},
+        "cpuBurnMs": {"type": "integer", "minimum": 0, "maximum": 2000}
+      }
+    },
+    "api": {
+      "type": "object",
+      "required": ["replicaCount", "image", "service", "resources", "podSecurityContext", "containerSecurityContext", "probes"],
+      "properties": {
+        "replicaCount": {"type": "integer", "minimum": 1, "maximum": 10},
+        "image": {
+          "type": "object",
+          "required": ["repository", "tag", "pullPolicy"],
+          "properties": {
+            "repository": {"type": "string", "minLength": 1},
+            "tag": {"type": "string", "minLength": 1},
+            "pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]}
+          }
+        },
+        "service": {
+          "type": "object",
+          "required": ["type", "port"],
+          "properties": {
+            "type": {"enum": ["ClusterIP", "NodePort", "LoadBalancer"]},
+            "port": {"type": "integer", "minimum": 1, "maximum": 65535}
+          }
+        },
+        "resources": {"type": "object"},
+        "podSecurityContext": {"type": "object"},
+        "containerSecurityContext": {"type": "object"},
+        "probes": {"type": "object"}
+      }
+    },
+    "autoscaling": {
+      "type": "object",
+      "required": ["enabled", "minReplicas", "maxReplicas", "targetCPUUtilizationPercentage", "behavior"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "minReplicas": {"type": "integer", "minimum": 1, "maximum": 10},
+        "maxReplicas": {"type": "integer", "minimum": 1, "maximum": 20},
+        "targetCPUUtilizationPercentage": {"type": "integer", "minimum": 1, "maximum": 100},
+        "behavior": {"type": "object"}
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "required": ["serviceMonitor", "prometheusRule", "grafanaDashboard"],
+      "properties": {
+        "serviceMonitor": {
+          "type": "object",
+          "required": ["enabled", "interval", "scrapeTimeout", "additionalLabels"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "interval": {"type": "string", "pattern": "^[0-9]+(ms|s|m|h)$"},
+            "scrapeTimeout": {"type": "string", "pattern": "^[0-9]+(ms|s|m|h)$"},
+            "additionalLabels": {"type": "object"}
+          }
+        },
+        "prometheusRule": {
+          "type": "object",
+          "required": ["enabled", "additionalLabels", "errorRateThreshold", "p95LatencySeconds", "for"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "additionalLabels": {"type": "object"},
+            "errorRateThreshold": {"type": "number", "minimum": 0, "maximum": 1},
+            "p95LatencySeconds": {"type": "number", "minimum": 0},
+            "for": {"type": "string", "pattern": "^[0-9]+(s|m|h)$"}
+          }
+        },
+        "grafanaDashboard": {
+          "type": "object",
+          "required": ["enabled", "label", "labelValue"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "label": {"type": "string", "minLength": 1},
+            "labelValue": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "postgresql": {
+      "type": "object",
+      "required": ["image", "auth", "service", "persistence", "resources"],
+      "properties": {
+        "image": {
+          "type": "object",
+          "required": ["repository", "tag", "pullPolicy"],
+          "properties": {
+            "repository": {"type": "string", "minLength": 1},
+            "tag": {"type": "string", "minLength": 1},
+            "pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]}
+          }
+        },
+        "auth": {
+          "type": "object",
+          "required": ["database", "username", "password", "existingSecret"],
+          "properties": {
+            "database": {"type": "string", "minLength": 1},
+            "username": {"type": "string", "minLength": 1},
+            "password": {"type": "string"},
+            "existingSecret": {"type": "string"}
+          }
+        },
+        "service": {
+          "type": "object",
+          "required": ["port"],
+          "properties": {
+            "port": {"type": "integer", "minimum": 1, "maximum": 65535}
+          }
+        },
+        "persistence": {
+          "type": "object",
+          "required": ["enabled", "size", "storageClass"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "size": {"type": "string", "pattern": "^[0-9]+(Mi|Gi|Ti)$"},
+            "storageClass": {"type": "string"}
+          }
+        },
+        "resources": {"type": "object"}
+      }
+    }
+  }
+}

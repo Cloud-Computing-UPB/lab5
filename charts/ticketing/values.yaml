@@ -1,0 +1,114 @@
+fullnameOverride: ""
+
+config:
+  appVersion: "1.0.0"
+  artificialDelayMs: 0
+  failureRate: 0
+  cpuBurnMs: 0
+
+api:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/cloud-computing-upb/lab5
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  probes:
+    startup:
+      periodSeconds: 2
+      timeoutSeconds: 1
+      failureThreshold: 30
+    readiness:
+      periodSeconds: 3
+      timeoutSeconds: 2
+      failureThreshold: 2
+    liveness:
+      periodSeconds: 10
+      timeoutSeconds: 2
+      failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 50
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: 15s
+    scrapeTimeout: 10s
+    additionalLabels:
+      release: monitoring
+  prometheusRule:
+    enabled: false
+    additionalLabels:
+      release: monitoring
+    errorRateThreshold: 0.01
+    p95LatencySeconds: 0.5
+    for: 1m
+  grafanaDashboard:
+    enabled: false
+    label: grafana_dashboard
+    labelValue: "1"
+
+postgresql:
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    database: tickets
+    username: tickets
+    # Valoare exclusiv pentru laborator; nu folosiți credențiale reale aici.
+    password: tickets-lab-password
+    # Dacă este setat, chart-ul nu mai creează Secret-ul propriu.
+    existingSecret: ""
+  service:
+    port: 5432
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+

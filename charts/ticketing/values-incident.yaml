@@ -1,0 +1,6 @@
+# Se aplică peste values-lab5.yaml pentru incidentul controlat.
+config:
+  appVersion: "1.0.0-incident"
+  artificialDelayMs: 700
+  failureRate: 0.25
+  cpuBurnMs: 40
